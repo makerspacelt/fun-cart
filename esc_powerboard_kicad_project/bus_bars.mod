@@ -1,0 +1,97 @@
+PCBNEW-LibModule-V1  Fri 02 Jan 2015 12:53:57 PM EET
+# encoding utf-8
+Units mm
+$INDEX
+bar_connector
+bus_bar_battery
+bus_bar_motor
+$EndINDEX
+$MODULE bar_connector
+Po 0 0 0 15 54A678BF 00000000 ~~
+Li bar_connector
+Sc 0
+AR 
+Op 0 0 0
+T0 -2 -10 1 1 0 0.15 N V 21 N "bar_connector"
+T1 -3.5 -8.5 1 1 0 0.15 N V 21 N "VAL**"
+DS -9 -7.5 4.335 -7.5 0.15 21
+DS 4.335 -7.5 4.335 7.74 0.15 21
+DS 4.335 7.74 -9 7.74 0.15 21
+DS -9 7.74 -9 -7.5 0.15 21
+$PAD
+Sh "1" R 8 15 0 0 0
+Dr 0 0 0
+At SMD N 00440001
+Ne 0 ""
+Po 0.017 0.12
+$EndPAD
+$PAD
+Sh "2" R 4 15 0 0 0
+Dr 0 0 0
+At SMD N 00440001
+Ne 0 ""
+Po -6.714 0.12
+$EndPAD
+$PAD
+Sh "1" C 8 8 0 0 0
+Dr 4 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 0
+$EndPAD
+$EndMODULE bar_connector
+$MODULE bus_bar_battery
+Po 0 0 0 15 54A581E3 00000000 ~~
+Li bus_bar_battery
+Sc 0
+AR 
+Op 0 0 0
+T0 0 -5.08 1 1 0 0.15 N V 21 N "bus_bar_motor"
+T1 0 3.81 1 1 0 0.15 N V 21 N "B"
+DS -12.7 -2.5 137.3 -2.5 0.15 21
+DS 137.3 -2.5 139.8 -2.5 0.15 21
+DS 139.8 -2.5 139.8 17.5 0.15 21
+DS 139.8 17.5 -15.2 17.5 0.15 21
+DS -15.2 17.5 -15.2 -2.5 0.15 21
+DS -15.2 -2.5 -12.7 -2.5 0.15 21
+$PAD
+Sh "1" R 137 15 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 68.5 7.5
+$EndPAD
+$EndMODULE bus_bar_battery
+$MODULE bus_bar_motor
+Po 0 0 0 15 54A581FB 00000000 ~~
+Li bus_bar_motor
+Sc 0
+AR 
+Op 0 0 0
+T0 0 -5.08 1 1 0 0.15 N V 21 N "bus_bar_motor"
+T1 0 3.81 1 1 0 0.15 N V 21 N "M-"
+DS 139.7 1.27 139.7 -7.62 0.15 21
+DS 139.7 -7.62 140.97 -8.89 0.15 21
+DS 140.97 -8.89 144.78 -8.89 0.15 21
+DS 144.78 -8.89 146.05 -7.62 0.15 21
+DS 146.05 -7.62 146.05 22.86 0.15 21
+DS 146.05 22.86 144.78 24.13 0.15 21
+DS 144.78 24.13 142.24 24.13 0.15 21
+DS 142.24 24.13 140.97 24.13 0.15 21
+DS 140.97 24.13 139.7 22.86 0.15 21
+DS 139.7 22.86 139.7 1.27 0.15 21
+DS 0 -2.5 150 -2.5 0.15 21
+DS 150 -2.5 152.5 -2.5 0.15 21
+DS 152.5 -2.5 152.5 17.5 0.15 21
+DS 152.5 17.5 -2.5 17.5 0.15 21
+DS -2.5 17.5 -2.5 -2.5 0.15 21
+DS -2.5 -2.5 0 -2.5 0.15 21
+$PAD
+Sh "1" R 137 15 0 0 0
+Dr 0 0 0
+At SMD N 00888000
+Ne 0 ""
+Po 68.5 7.5
+$EndPAD
+$EndMODULE bus_bar_motor
+$EndLIBRARY
