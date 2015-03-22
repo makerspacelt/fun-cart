@@ -1,5 +1,6 @@
 // fun-cart Makerspace.lt Arduino based controller v1.0
-// last update 2015.03.21
+// last update 2015.03.22
+//removed delay() from last 20s counter, now using milis() to blink led and buzzer
 
 #include <EEPROM.h>  // We are going to read and write user data from/to EEPROM
 
@@ -42,11 +43,21 @@ int level=1800;
   int average = 0;                // the average
   int max_ppm=1900;
   int incomingByte =0;
-  long currentmillis=0;
+  long currentMillis=0;
   long mins=0;
   long secs=0;
   long laikas=0;
   int runtime=0;
+  unsigned long BeepTimer=0;
+  unsigned long interval = 500; 
+  int ledState = LOW; 
+  unsigned long previousMillis = 0; // will store last time LED was updated
+  long OnTime = 250; // milliseconds of on-time
+  long OffTime = 750; // milliseconds of off-time
+  
+//  int buttonPushCounter = 0;   // counter for the number of button presses
+//int buttonState = 0;         // current state of the button
+////int lastButtonState = 0;     // previous state of the button
 ///////////////////////////////////////// Setup ///////////////////////////////////
 void setup() {
   //Arduino Pin Configuration
@@ -55,7 +66,7 @@ void setup() {
   digitalWrite(buzzer, LOW); // Make sure buzzer is off
   digitalWrite(redLed, LED_OFF); // Make sure led is off
    
-//  Serial.begin(9600);	 // Initialize serial communications with PC
+  Serial.begin(9600);	 // Initialize serial communications with PC
 
    pinMode(motor_pin, OUTPUT); // set pin 9 to output
    pinMode(pot_pin, INPUT);
@@ -67,67 +78,58 @@ void setup() {
     cycleLeds();
    delay(3000);
     cycleLeds();
-   for (int thisReading = 0; thisReading < numReadings; thisReading++)
-    readings[thisReading] = 0;
+   for (int thisReading = 0; thisReading < numReadings; thisReading++) readings[thisReading] = 0;
    
   //Enter programing mode if Button Pressed while setup run (powered on)
   pinMode(resetB, INPUT_PULLUP);  // Enable pin's pull up resistor
   if (digitalRead(resetB) == LOW) {     // when button pressed pin should get low, button connected to ground
     digitalWrite(redLed, LED_ON);   // Red Led stays on to inform user we are going to enter programing mode
-
     delay(5000);    // Give user enough time to cancel operation
     if (digitalRead(resetB) == LOW) {  // If button still be pressed, enter programing mode
-
-      programMode=true;
-      // visualize successful entering to programing mode
-     cycleLeds();
-     cycleLeds();
-     cycleLeds();
-  
-    }
-    else {
-      digitalWrite(redLed, LED_OFF);
-    }
+        programMode=true;
+        // visualize successful entering to programing mode
+       cycleLeds();
+       cycleLeds();
+       cycleLeds();
+       }
+        else {
+              digitalWrite(redLed, LED_OFF);
+             }
   }
 
 int sk=EEPROM.read(199);
 runtime=EEPROM.read(200+sk);
 max_ppm=8*runtime;
-// Serial.print("Max-ppm was: ");
-// Serial.print(max_ppm);
-//  Serial.print("  at EEPROM address ");
-//   Serial.println(200+sk);
-   if(runtime<=120) {runtime=300-runtime+40;} else runtime=300-runtime;
+   if(runtime<=120) {runtime=280-runtime+40;} else runtime=280-runtime;
+    Serial.println(runtime);
 }
 
 
 ///////////////////////////////////////// Main Loop ///////////////////////////////////
 void loop () {
         
-    if (programMode) {
-   
-      if (digitalRead(resetB) == LOW) {     // when button pressed pin should get low, button connected to ground
-        digitalWrite(redLed, LED_ON);
-        digitalWrite(buzzer, HIGH);
-      }
-      delay(2000);
-      if (digitalRead(resetB) == LOW) {     // when button pressed pin should get low, button connected to ground
-          digitalWrite(redLed, LED_OFF); 
-          digitalWrite(buzzer, LOW);
-          int sk=EEPROM.read(199);
-           if (sk==5){ 
-             EEPROM.write(199, 0);
-            } 
-            else{
-              sk+=1;
-              EEPROM.write(199, sk); // if not write 0, it takes 3.3mS
-              for ( int i = 0; i < sk; i++ ) {     // Read Master Card's UID from EEPROM
-                   cycleLeds();
-               }
+    if (programMode) 
+        {
+          if (digitalRead(resetB) == LOW) // when button pressed pin should get low, button connected to ground
+            {     
+                delay(2000);
+                if (digitalRead(resetB) == LOW) // when button pressed pin should get low, button connected to ground
+                    {
+                      int sk=EEPROM.read(199);
+                       if (sk==5)
+                         { 
+                                 EEPROM.write(199, 0);
+                         }  else
+                           {
+                            sk+=1;
+                            EEPROM.write(199, sk); // if not write 0, it takes 3.3mS
+                            for ( int i = 0; i < sk; i++ ) {     // Read ride level from EEPROM
+                                                         cycleLeds();
+                              }
+                          }
+                   }
             }
-      }
-    }
-   
+        } 
  
    //*************************************************************************************
   // filling array with Pot value and counting average from stored array elements ********
@@ -145,41 +147,19 @@ void loop () {
   // calculate the average:
   average = total / numReadings;         
  //****************************************************************************************
- 
-//  average=analogRead(pot_pin);
-  // send it to the computer as ASCII digits
-// Serial.print("gazo reiksme:---------    ");
-//  Serial.println(average);   
-/*
-   //apply expo to throtle valuebegin
-  byte expo_byt = 50; // 0=none, 25=medium, 50=strong 100=too much
-		if (expo_byt != 0) {
-			// apply full exponential curve to the throttle channel (contributed by jbjb)
-			float expoval_flt = expo_byt / 10.0;
-			float value_flt = average /860; //1023.0; // map to [0, +1] range
-			value_flt = value_flt * exp(abs(expoval_flt * value_flt)) / exp(expoval_flt);
-			average = (unsigned int)(860 * value_flt); // map to [0, 1023] range
-                     Serial.print("VALFLOAT: ");
-  Serial.print((unsigned int)(value_flt*1000));  
-                    }
-  */
-  
-  
-  //expo end
 
   average=map(average, 0, 860, 1020, max_ppm);
-  currentmillis=millis();
+  currentMillis=millis();
    
   if(secs==0){
     dutytime=(1040<<3);
   }
   else {
-        secs =laikas- currentmillis/1000; //convect milliseconds to seconds
+        secs =laikas- currentMillis/1000; //convect milliseconds to seconds
         dutytime=(average<<3);  
   }
-  
-  if((secs<20)&&(secs>0)){
-      cycleLeds(); 
+   if((secs<20)&&(secs>0)){
+        blinker();
   }
 /*
   Serial.println("Left Time");
@@ -189,21 +169,57 @@ void loop () {
   Serial.print("  ESC dutytime: ");
   Serial.println(dutytime,DEC);
   */
-  if(dutytime<1200) digitalWrite(led_pin,HIGH); else digitalWrite(led_pin,LOW);
+ // if(dutytime<8200) digitalWrite(led_pin,HIGH); else digitalWrite(led_pin,LOW);
 
 OCR1A = dutytime;
   
   if(!programMode){
+   /*  buttonState = digitalRead(resetB);
+
+  // compare the buttonState to its previous state
+  if (buttonState != lastButtonState) {
+    // if the state has changed, increment the counter
+    if (buttonState == HIGH) {
+      // if the current state is HIGH then the button
+      // wend from off to on:
+      buttonPushCounter++;
+      Serial.println("on");
+      Serial.print("number of button pushes:  ");
+      Serial.println(buttonPushCounter);
+    }
+    else {
+      // if the current state is LOW then the button
+      // wend from on to off:
+      Serial.println("off");
+    }
+  }
+  // save the current state as the last state,
+  //for next time through the loop
+  lastButtonState = buttonState;
+
+ 
+  // turns on the LED every four button pushes by
+  // checking the modulo of the button push counter.
+  // the modulo function gives you the remainder of
+  // the division of two numbers:
+  if (buttonPushCounter % 4 == 0) {
+    digitalWrite(buzzer, HIGH);
+  } else {
+   digitalWrite(buzzer, LOW);
+  }
+    
+    */
+    
    if (digitalRead(resetB) == LOW) {     // when button pressed pin should get low, button connected to ground
      delay(3000);
      if (digitalRead(resetB) == LOW) {
         cycleLeds();  
         cycleLeds();
-        currentmillis=millis();
-        laikas=runtime+currentmillis/1000;
-        secs =laikas- currentmillis/1000; 
+        currentMillis=millis();
+        laikas=runtime+currentMillis/1000;
+        secs =laikas- currentMillis/1000; 
      }  
-   }
+   } 
   }
 
 }
@@ -221,6 +237,73 @@ void cycleLeds() {
   digitalWrite(buzzer, LOW);
   delay(200);
 }
+/*
+void beep(){
+  
+ //  unsigned long currentMillis = millis();
+ 
+  if(currentMillis - previousMillis > interval) {
+    // save the last time you blinked the LED
+    previousMillis = currentMillis;  
 
+    // if the LED is off turn it on and vice-versa:
+    if (ledState == HIGH)
+      ledState = LOW;
+    else
+      ledState = HIGH;
 
+    // set the LED with the ledState of the variable:
+    digitalWrite(buzzer, ledState);
+    digitalWrite(redLed, ledState);
+  } //else digitalWrite(buzzer, LOW);
+  
+}
+*/
+void blinker(){
+//  unsigned long currentMillis = millis();
+if((ledState == HIGH) && (currentMillis - previousMillis >= OnTime))
+{
+ledState = LOW; // Turn it off
+previousMillis = currentMillis; // Remember the time
+digitalWrite(buzzer, ledState); // Update the actual LED
+digitalWrite(redLed, ledState);
+}
+else if ((ledState == LOW) && (currentMillis - previousMillis >= OffTime))
+{
+ledState = HIGH; // turn it on
+previousMillis = currentMillis; // Remember the time
+digitalWrite(buzzer, ledState);	// Update the actual LED
+digitalWrite(redLed, ledState);
+} 
+  
+ }
 
+//***************************************************************************
+/*
+void printDouble( double val, byte precision){
+  // prints val with number of decimal places determine by precision
+  // precision is a number from 0 to 6 indicating the desired decimial places
+  // example: printDouble( 3.1415, 2); // prints 3.14 (two decimal places)
+
+  Serial.print (int(val));  //prints the int part
+  if( precision > 0) {
+    Serial.print("."); // print the decimal point
+    unsigned long frac;
+    unsigned long mult = 1;
+    byte padding = precision -1;
+    while(precision--)
+       mult *=10;
+       
+    if(val >= 0)
+      frac = (val - int(val)) * mult;
+    else
+      frac = (int(val)- val ) * mult;
+    unsigned long frac1 = frac;
+    while( frac1 /= 10 )
+      padding--;
+    while(  padding--)
+      Serial.print("0");
+    Serial.print(frac,DEC) ;
+  }
+}
+*/
